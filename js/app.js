@@ -1,10 +1,8 @@
 if ('serviceWorker' in navigator){
     navigator.serviceWorker.register('/sw.js')
-    .then(() => navigator.serviceWorker.ready)
-        .then(registration => {
-          if ('SyncManager' in window) {
-            registration.sync.register('sync-messages')
-          }
-        })
-    .catch((err) => console.log('service worker not registered'));
+    .then((reg) => console.log('service worker registered', reg))
+    .catch((err) => console.log('service worker not registered', err));
 }
+Notification.requestPermission(function(status) {
+    console.log('Notification permission status:', status);
+    });

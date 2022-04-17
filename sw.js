@@ -1,47 +1,57 @@
 // install service worker
-self.addEventListener('install', evt =>{
+self.addEventListener('install', evt => {
     console.log('service worker is installed');
 });
 
 // activate service worker
-self.addEventListener('activate', evt =>{
+self.addEventListener('activate', evt => {
     console.log('service worker has been activated');
 });
 
 // fetch event
-self.addEventListener('fetch', evt =>{
+self.addEventListener('fetch', evt => {
     console.log('fetch event', evt);
+    evt.respondWith(
+        caches.match(evt.request).then(cacheRes => {
+            return cacheRes || fetch(evt.request);
+        })
+    );
 });
 
 //sync event
-self.addEventListener('sync', event => {
-    if (event.tag =='sync-messages') {
-       event.waitUntil('syncMessages');
-    }
- })
+self.addEventListener('sync', function (event) {
+    console.log("sync event", event);
+});
 
- self.addEventListener('push', function(event) {
-    if (!(self.Notification && self.Notification.permission === 'granted')) {
-      return;
+//push event
+self.addEventListener('push', e => {
+    console.log('push', e);
+    var body;
+    if (e.data) {
+        body = e.data.text();
+    } else {
+        body = 'Push message no payload';
     }
-  
-    var data = {};
-    if (event.data) {
-      data = event.data.json();
-    }
-    var title = data.title || "Something Has Happened";
-    var message = data.message || "Here's something you might want to check out.";
-    var icon = "images/new-notification.png";
-  
-    var notification = new self.Notification(title, {
-      body: message,
-      tag: 'simple-push-demo-notification',
-      icon: icon
-    });
-  
-    notification.addEventListener('click', function() {
-      if (clients.openWindow) {
-        clients.openWindow('https://example.blog.com/2015/03/04/something-new.html');
-      }
-    });
-  });
+    var options = {
+        body: body,
+        icon: 'images/image-1.jpg',
+        vibrate: [100, 50, 100],
+        data: {
+            dateOfArrival: Date.now(),
+            primaryKey: 1
+        },
+        actions: [
+            {
+                action: 'explore', title: 'Explore this new world',
+                icon: 'images/image-2.jpg'
+            },
+            {
+                action: 'close', title: 'I don\'t want any of this',
+                icon: 'images/image-6.jpg'
+            },
+        ]
+    };
+    e.waitUntil(
+        self.registration.showNotification('Push Notification', options)
+    );
+});
